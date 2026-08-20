@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>流通コスト探究ゲーム｜ビジネス基礎</title>
+<style>
+  :root{
+    --ink:#263238;
+    --blue:#4f8cff;
+    --blue2:#eaf2ff;
+    --pink:#ff6f91;
+    --pink2:#fff0f4;
+    --yellow:#ffd85c;
+    --yellow2:#fff8d9;
+    --green:#55c98a;
+    --green2:#eafaf1;
+    --orange:#ff9f43;
+    --purple:#9b7cff;
+    --bg:#f7f9fc;
+    --card:#ffffff;
+    --line:#dce3ec;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:linear-gradient(135deg,#f2f7ff 0%,#fff7fb 50%,#fffbed 100%);
+    color:var(--ink);
+    font-family:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+    line-height:1.6;
+  }
+  button,select,input{font:inherit}
+  button{cursor:pointer}
+  .app{max-width:1250px;margin:auto;padding:18px}
+  header{
+    background:var(--card);
+    border-radius:28px;
+    padding:24px 28px;
+    box-shadow:0 8px 25px rgba(54,72,95,.10);
+    border:3px solid #fff;
+    margin-bottom:18px;
+  }
+  .eyebrow{
+    display:inline-block;
+    background:var(--yellow2);
+    color:#9a7200;
+    padding:5px 12px;
+    border-radius:999px;
+    font-weight:900;
+    font-size:13px;
+  }
+  h1{margin:5px 0 3px;font-size:clamp(28px,4vw,42px);letter-spacing:.02em}
+  .lead{margin:0;color:#607080;font-weight:700}
+  .layout{
+    display:grid;
+    grid-template-columns:360px 1fr;
+    gap:18px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:24px;
+    padding:20px;
+    box-shadow:0 7px 22px rgba(54,72,95,.08);
+    border:2px solid #fff;
+  }
+  .title{
+    margin:0 0 14px;
+    font-size:21px;
+    font-weight:900;
+  }
+  .step{
+    display:inline-flex;
+    width:31px;height:31px;
+    align-items:center;justify-content:center;
+    border-radius:50%;
+    background:var(--blue);
+    color:#fff;
+    margin-right:7px;
+    font-size:15px;
+  }
+
+
+  /* 日本地図風の選択エリア */
+  .japan-map{
+    position:relative;
+    height:340px;
+    overflow:hidden;
+    border-radius:22px;
+    border:3px solid #dce8f3;
+    background:
+      radial-gradient(circle at 20% 30%,rgba(255,255,255,.95),transparent 32%),
+      linear-gradient(145deg,#e9f7ff,#dff3ec);
+  }
+  .japan-map:before{
+    content:"";
+    position:absolute;
+    left:7%;top:8%;
+    width:84%;height:82%;
+    background:#fffdf3;
+    clip-path:polygon(7% 4%,20% 8%,27% 18%,39% 25%,48% 34%,57% 39%,66% 49%,74% 58%,83% 69%,92% 79%,84% 90%,70% 83%,58% 76%,48% 69%,37% 62%,29% 52%,19% 47%,11% 35%,3% 24%);
+    border:2px solid #c7d8c7;
+    opacity:.9;
+  }
+  .map-sea-label{
+    position:absolute;left:12px;bottom:9px;
+    color:#7a9bad;font-size:12px;font-weight:800;
+  }
+  .map-point{
+    position:absolute;
+    transform:translate(-50%,-50%);
+    border:0;
+    background:transparent;
+    padding:0;
+    z-index:2;
+    text-align:center;
+    min-width:72px;
+  }
+  .map-dot{
+    width:20px;height:20px;
+    border-radius:50%;
+    background:#4f8cff;
+    border:4px solid #fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.18);
+    margin:auto;
+    transition:.15s;
+  }
+  .map-point:hover .map-dot{transform:scale(1.2)}
+  .map-point.selected .map-dot{
+    background:#ff6f91;
+    transform:scale(1.35);
+  }
+  .map-point .map-name{
+    display:inline-block;
+    margin-top:3px;
+    padding:2px 6px;
+    border-radius:8px;
+    background:rgba(255,255,255,.92);
+    font-weight:900;
+    font-size:12px;
+    white-space:nowrap;
+    color:#263238;
+  }
+  .map-point.selected .map-name{
+    background:#fff0f4;
+    color:#d63861;
+  }
+  .wholesale-count{
+    margin-top:10px;
+    display:inline-block;
+    background:#fff4d8;
+    color:#9a6500;
+    border-radius:999px;
+    padding:6px 13px;
+    font-weight:900;
+  }
+
+  /* 商品 */
+  .products{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .product{
+    border:3px solid var(--line);
+    background:#fff;
+    border-radius:18px;
+    padding:13px 8px;
+    text-align:center;
+    transition:.15s;
+  }
+  .product:hover{transform:translateY(-2px)}
+  .product.selected{
+    border-color:var(--pink);
+    background:var(--pink2);
+    box-shadow:0 4px 0 rgba(255,111,145,.18);
+  }
+  .product .emoji{display:block;font-size:40px}
+  .product strong{font-size:17px}
+
+  /* 選択 */
+  .field{margin-bottom:15px}
+  label{display:block;font-weight:900;margin-bottom:6px}
+  select{
+    width:100%;
+    padding:12px 13px;
+    border:3px solid var(--line);
+    border-radius:14px;
+    background:#fff;
+    outline:none;
+  }
+  select:focus{border-color:var(--blue)}
+
+  .place-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .place{
+    border:2px solid var(--line);
+    background:#fff;
+    border-radius:13px;
+    padding:9px 7px;
+    font-weight:800;
+  }
+  .place.selected{border-color:var(--blue);background:var(--blue2);color:#245fc7}
+
+  /* ルート */
+  .route{
+    background:#f8fafc;
+    border-radius:20px;
+    padding:16px;
+    border:2px dashed #ccd6e2;
+  }
+  .route-line{
+    display:flex;align-items:center;justify-content:center;
+    gap:5px;flex-wrap:wrap;
+  }
+  .node{
+    background:#fff;
+    border:3px solid var(--blue);
+    border-radius:16px;
+    padding:10px 12px;
+    text-align:center;
+    min-width:105px;
+    font-weight:900;
+  }
+  .node.consumer{border-color:var(--green)}
+  .arrow{font-size:23px;font-weight:900;color:#9aa8b6}
+  .route-note{
+    text-align:center;
+    color:#657487;
+    font-size:13px;
+    margin:10px 0 0;
+  }
+
+  .route-options{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px
+  }
+  .route-btn{
+    border:2px solid var(--line);
+    background:#fff;
+    border-radius:15px;
+    padding:10px 7px;
+    font-weight:900;
+  }
+  .route-btn.selected{
+    border-color:var(--orange);
+    background:#fff5e8;
+    color:#a75a00;
+  }
+
+  /* 指標 */
+  .metrics{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+    margin-top:15px;
+  }
+  .metric{
+    border-radius:17px;
+    padding:13px 9px;
+    text-align:center;
+    background:#f7f9fc;
+  }
+  .metric:nth-child(1){background:var(--pink2)}
+  .metric:nth-child(2){background:var(--blue2)}
+  .metric:nth-child(3){background:var(--yellow2)}
+  .metric:nth-child(4){background:var(--green2)}
+  .metric .label{font-size:12px;color:#687789;font-weight:900}
+  .metric .value{font-size:24px;font-weight:900;line-height:1.2;margin-top:3px}
+
+  /* 結果 */
+  .result-panel{
+    margin-top:18px;
+    border-radius:22px;
+    padding:18px;
+    background:#263238;
+    color:#fff;
+  }
+  .result-title{font-size:20px;font-weight:900}
+  .result-big{
+    font-size:clamp(30px,5vw,48px);
+    font-weight:900;
+    color:var(--yellow);
+    line-height:1.1;
+  }
+  .result-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px
+  }
+  .result-box{
+    background:rgba(255,255,255,.10);
+    border-radius:14px;padding:11px;
+  }
+  .result-box small{display:block;color:#c9d4dd}
+  .result-box strong{font-size:20px}
+
+  /* 比較 */
+  .comparison{margin-top:18px}
+  table{width:100%;border-collapse:collapse;overflow:hidden;border-radius:15px}
+  th,td{padding:11px 9px;border-bottom:1px solid #e5eaf0;text-align:center}
+  th{background:#f1f5f9;font-weight:900}
+  tr:last-child td{border-bottom:0}
+  .bar-wrap{height:15px;background:#edf1f5;border-radius:999px;overflow:hidden}
+  .bar{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--pink))}
+  .current-row{background:#fff7e8;font-weight:900}
+
+  /* 探究 */
+  .inquiry{
+    margin-top:18px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+  .inquiry-list{margin:0;padding-left:22px}
+  .inquiry-list li{margin:8px 0}
+  .mini{
+    background:#f8fafc;
+    border-radius:15px;
+    padding:13px;
+    font-size:14px;
+  }
+  .mini strong{color:#356fc8}
+
+  .actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}
+  .primary{
+    border:0;
+    background:linear-gradient(135deg,var(--blue),#786cff);
+    color:#fff;
+    border-radius:15px;
+    padding:13px 20px;
+    font-weight:900;
+    box-shadow:0 5px 0 rgba(64,91,190,.18);
+  }
+  .secondary{
+    border:2px solid var(--line);
+    background:#fff;
+    border-radius:15px;
+    padding:11px 16px;
+    font-weight:900;
+  }
+  .hint{
+    color:#6d7b8b;
+    font-size:13px;
+    margin-top:9px;
+  }
+  .disabled{opacity:.45;pointer-events:none}
+
+  @media(max-width:950px){
+    .layout{grid-template-columns:1fr}
+    .metrics{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:620px){
+    .app{padding:10px}
+    header,.card{padding:15px;border-radius:20px}
+    .route-options{grid-template-columns:1fr}
+    .inquiry{grid-template-columns:1fr}
+    .metrics{grid-template-columns:1fr 1fr}
+    .node{min-width:82px;padding:8px 6px;font-size:13px}
+    .arrow{font-size:18px}
+  }
+</style>
+</head>
+
+<body>
+<div class="app">
+<header>
+  <span class="eyebrow">高校「ビジネス基礎」× 探究学習</span>
+  <h1>🚚 「商品の流通」探究ラボ</h1>
+  <p class="lead">「生産～流通～消費の道筋」を変えると、販売価格はどう変わる？</p>
+</header>
+
+<div class="layout">
+
+  <!-- 左：条件設定 -->
+  <aside class="card">
+    <h2 class="title"><span class="step">1</span>商品を選ぶ</h2>
+    <div class="field">
+      <label for="productSelect">流通させる商品</label>
+      <select id="productSelect">
+        <option value="rice">🍚 お米</option>
+        <option value="fish">🐟 鮮魚</option>
+        <option value="orange">🍊 みかん</option>
+        <option value="milk">🥛 牛乳</option>
+      </select>
+    </div>
+
+    <hr style="border:0;border-top:1px solid #edf0f4;margin:18px 0">
+
+    <h2 class="title"><span class="step">2</span>生産地を選ぶ</h2>
+    <div class="field"><label for="productionSelect">生産地</label><select id="productionSelect"></select></div>
+
+    <h2 class="title" style="margin-top:18px"><span class="step">3</span>消費地を選ぶ</h2>
+    <div class="field"><label for="consumerSelect">消費地</label><select id="consumerSelect"></select></div>
+
+    <div class="actions">
+      <button class="primary" id="calculate">価格をシミュレーション</button>
+      <button class="secondary" id="reset">リセット</button>
+    </div>
+    <p class="hint">※金額・時間は学習用に設定したモデル値です。実際の市場価格や輸送費を示すものではありません。</p>
+  </aside>
+
+  <!-- 右：シミュレーション -->
+  <main>
+    <section class="card">
+      <h2 class="title"><span class="step">4</span>流通経路を組み立てる</h2>
+
+      <div class="route">
+        <div class="route-line" id="routeDisplay">
+          <div class="node">🏭 生産地</div>
+          <div class="arrow">→</div>
+          <div class="node">🏪 卸売</div>
+          <div class="arrow">→</div>
+          <div class="node consumer">🏠 消費地</div>
+        </div>
+        <p class="route-note">中間段階が増えると、流通コストや流通時間はどう変化する？</p>
+      </div>
+
+      <div class="route-options" id="routeOptions">
+        <button class="route-btn selected" data-route="direct">🚛 直接取引</button>
+        <button class="route-btn" id="addWholesale">🏢 卸売を利用</button>
+        <button class="route-btn" id="clearWholesale">↩ 卸売を1つ減らす</button>
+      </div>
+      <div class="wholesale-count" id="wholesaleCount">卸売：0か所</div>
+      <p class="hint">「卸売を利用」を押した回数だけ、流通経路に卸売が追加されます。何段階もの流通を比較できます。</p>
+
+      <div class="field" style="margin-top:15px">
+        <label for="transport">主な輸送方法</label>
+        <select id="transport">
+          <option value="truck">🚚 トラック</option>
+          <option value="rail">🚆 鉄道</option>
+          <option value="ship">🚢 船舶</option>
+          <option value="air">✈️ 航空</option>
+        </select>
+      </div>
+
+      <div class="metrics">
+        <div class="metric"><div class="label">商品そのものの価格</div><div class="value" id="basePrice">—</div></div>
+        <div class="metric"><div class="label">流通コスト</div><div class="value" id="distributionCost">—</div></div>
+        <div class="metric"><div class="label">消費者への販売価格</div><div class="value" id="sellingPrice">—</div></div>
+        <div class="metric"><div class="label">流通時間</div><div class="value" id="distributionTime">—</div></div>
+      </div>
+
+      <div class="result-panel">
+        <div class="result-title">今回の流通条件</div>
+        <div id="resultRoute" style="margin:5px 0 8px">条件を設定してください</div>
+        <div class="result-big" id="priceDifference">—</div>
+        <div id="resultMessage">他の条件と比較すると、どのくらい違うかを調べよう。</div>
+        <div class="result-grid">
+          <div class="result-box"><small>流通コストの割合</small><strong id="costRatio">—</strong></div>
+          <div class="result-box"><small>流通時間</small><strong id="timeResult">—</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card comparison">
+      <h2 class="title"><span class="step">5</span>条件を変えて比較しよう</h2>
+      <p class="hint">同じ商品でも、生産地・消費地・流通経路を変えると販売価格が変わります。</p>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>条件</th>
+              <th>流通コスト</th>
+              <th>販売価格</th>
+              <th>流通時間</th>
+            </tr>
+          </thead>
+          <tbody id="comparisonBody">
+            <tr><td colspan="4">「価格をシミュレーション」を押してください。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="inquiry">
+      <div class="card">
+        <h2 class="title">🔎 探究のヒント</h2>
+        <ul class="inquiry-list">
+          <li>同じ商品で<strong>生産地だけ</strong>を変えると？</li>
+          <li>同じ条件で<strong>〇〇だけ</strong>を変えると？</li>
+          <li>「安い経路」がいつも<strong>最適</strong>なのか？</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2 class="title">💬 用語の補足</h2>
+        <div class="mini">
+          <strong>① 流通経路</strong><br>
+          商品が生産者から消費者へ届くまでの道筋。
+        </div>
+        <div class="mini" style="margin-top:8px">
+          <strong>② 流通コスト</strong><br>
+          輸送・保管・荷役・卸売・小売など、商品を届けるために必要な費用。
+        </div>
+        <div class="mini" style="margin-top:8px">
+          <strong>③ 価格形成</strong><br>
+          商品価格に流通に必要な費用が加わることで、消費者価格が形成される。
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+
+<script>
+"use strict";
+
+/*
+  商品流通コスト探究ラボ
+  --------------------------------
+  授業用の「比較・探究」を目的としたモデルシミュレーターです。
+  実際の市場価格・物流費・統計値ではありません。
+*/
+
+const PRODUCTS = {
+  rice:{
+    name:"お米", emoji:"🍚",
+    base:3500,
+    idealTemp:1,
+    freshness:1.0
+  },
+  fish:{
+    name:"鮮魚", emoji:"🐟",
+    base:2000,
+    idealTemp:2,
+    freshness:2.5
+  },
+  orange:{
+    name:"みかん", emoji:"🍊",
+    base:800,
+    idealTemp:3,
+    freshness:1.2
+  },
+  milk:{
+    name:"牛乳", emoji:"🥛",
+    base:250,
+    idealTemp:1,
+    freshness:3.0
+  }
+};
+
+/*
+  「距離」は学習用の概算値。
+  実際の道路距離ではなく、地域間の距離差を比較するためのモデル。
+*/
+const PLACES = {
+  goto:{name:"五島"}, nagasaki:{name:"長崎"}, kagoshima:{name:"鹿児島"},
+  yamaguchi:{name:"山口"}, wakayama:{name:"和歌山"}, niigata:{name:"新潟"},
+  akita:{name:"秋田"}, sapporo:{name:"札幌"}, fukuoka:{name:"福岡"},
+  hiroshima:{name:"広島"}, osaka:{name:"大阪"}, nagoya:{name:"名古屋"},
+  tokyo:{name:"東京"}
+};
+
+const TRANSPORT = {
+  truck:{name:"トラック",cost:.95,time:1.0},
+  rail:{name:"鉄道",cost:.72,time:1.25},
+  ship:{name:"船舶",cost:.55,time:1.65},
+  air:{name:"航空",cost:2.0,time:.35}
+};
+
+const ROUTE_BASE = {
+  fixed:80,
+  time:1.0
+};
+
+let selectedProduct = "rice";
+let production = "goto";
+let consumer = "fukuoka";
+let wholesaleCount = 0;
+let history = [];
+
+const $ = id => document.getElementById(id);
+
+function renderProducts(){
+  $("productSelect").value = selectedProduct;
+}
+
+function renderPlaceSelects(){
+  const prod=[["goto","五島"],["nagasaki","長崎"],["kagoshima","鹿児島"],["yamaguchi","山口"],["wakayama","和歌山"],["niigata","新潟"],["akita","秋田"],["sapporo","札幌"]];
+  const cons=[["goto","五島"],["nagasaki","長崎"],["fukuoka","福岡"],["hiroshima","広島"],["osaka","大阪"],["nagoya","名古屋"],["tokyo","東京"],["sapporo","札幌"]];
+  $("productionSelect").innerHTML=prod.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");
+  $("consumerSelect").innerHTML=cons.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join("");
+  $("productionSelect").value=production;
+  $("consumerSelect").value=consumer;
+  $("productionSelect").onchange=()=>{production=$("productionSelect").value;updatePreview();};
+  $("consumerSelect").onchange=()=>{consumer=$("consumerSelect").value;updatePreview();};
+}
+
+function updateRouteDisplay(){
+  let htmlRoute=`<div class="node">🏭 ${PLACES[production].name}</div>`;
+  for(let i=0;i<wholesaleCount;i++){
+    htmlRoute+=`<div class="arrow">→</div><div class="node">🏢 卸売${i+1}</div>`;
+  }
+  htmlRoute+=`<div class="arrow">→</div>
+    <div class="node">🏪 小売</div>
+    <div class="arrow">→</div>
+    <div class="node consumer">🏠 ${PLACES[consumer].name}</div>`;
+  $("routeDisplay").innerHTML=htmlRoute;
+  $("wholesaleCount").textContent=`卸売：${wholesaleCount}か所`;
+}
+
+function distanceFactor(){
+  if(production===consumer) return 0.20;
+  const order=["goto","nagasaki","kagoshima","yamaguchi","wakayama","niigata","akita","sapporo","fukuoka","hiroshima","osaka","nagoya","tokyo"];
+  const weights={goto:0.2,nagasaki:0.4,kagoshima:0.6,yamaguchi:0.8,wakayama:0.9,niigata:1.0,akita:1.2,sapporo:1.6,fukuoka:0.7,hiroshima:0.9,osaka:1.1,nagoya:1.3,tokyo:1.5};
+  return Math.max(0.35,Math.abs(weights[production]-weights[consumer])+0.55);
+}
+
+function calculate(){
+  const p=PRODUCTS[selectedProduct];
+  const t=TRANSPORT[$("transport").value];
+  const distance=distanceFactor();
+
+  const routeFixed=ROUTE_BASE.fixed + wholesaleCount*105;
+  const handlingCost=45 + wholesaleCount*72;
+
+  let transportCost=180*distance*t.cost;
+
+  if(selectedProduct==="fish") transportCost*=1.30;
+  if(selectedProduct==="milk") transportCost*=1.20;
+  if(selectedProduct==="rice") transportCost*=.82;
+  if(selectedProduct==="orange") transportCost*=.95;
+
+  const cost=Math.round(transportCost+routeFixed+handlingCost);
+  const price=p.base+cost;
+
+  // 卸売段階が増えるほど時間も増えるモデル。
+  const timeBase=5+distance*9;
+  const time=Math.round(timeBase*t.time*(1+wholesaleCount*.10)*10)/10;
+
+  return {p,t,distance,cost,price,time};
+}
+
+function updatePreview(){
+  updateRouteDisplay();
+  const d=calculate();
+
+  $("basePrice").textContent=d.p.base.toLocaleString()+"円";
+  $("distributionCost").textContent=d.cost.toLocaleString()+"円";
+  $("sellingPrice").textContent=d.price.toLocaleString()+"円";
+  $("distributionTime").textContent=d.time+"時間";
+
+  $("resultRoute").textContent=
+    `${d.p.emoji} ${d.p.name}｜${PLACES[production].name} → ${PLACES[consumer].name}｜卸売 ${wholesaleCount}か所・${d.t.name}`;
+
+  $("priceDifference").textContent=`販売価格 ${d.price.toLocaleString()}円`;
+  $("costRatio").textContent=Math.round(d.cost/d.price*100)+"%";
+  $("timeResult").textContent=d.time+"時間";
+
+  $("resultMessage").textContent=
+    wholesaleCount===0
+      ? "卸売を使わない経路です。中間段階を増やすと価格と時間がどう変わるか試してみましょう。"
+      : `卸売を${wholesaleCount}か所通過する経路です。中間段階が増えることで、流通コストと時間が変化しています。`;
+
+  return d;
+}
+
+function addHistory(){
+  const d=updatePreview();
+
+  history.push({
+    product: d.p.name,
+    route: `卸売${wholesaleCount}か所`,
+    from: PLACES[production].name,
+    to: PLACES[consumer].name,
+    transport: d.t.name,
+    cost:d.cost,
+    price:d.price,
+    time:d.time
+  });
+
+  // 同じ条件を重複して保存しない
+  history=history.filter((item,index,self)=>
+    index===self.findIndex(x=>
+      JSON.stringify(x)===JSON.stringify(item)
+    )
+  );
+
+  renderComparison();
+}
+
+function renderComparison(){
+  if(!history.length){
+    $("comparisonBody").innerHTML=
+      `<tr><td colspan="4">「価格をシミュレーション」を押してください。</td></tr>`;
+    return;
+  }
+
+  const max=Math.max(...history.map(x=>x.price));
+
+  $("comparisonBody").innerHTML=history.map((x,i)=>`
+    <tr class="${i===history.length-1?"current-row":""}">
+      <td>
+        ${x.product}<br>
+        <small>${x.from} → ${x.to}<br>${x.route}・${x.transport}</small>
+      </td>
+      <td>${x.cost.toLocaleString()}円</td>
+      <td>
+        <strong>${x.price.toLocaleString()}円</strong>
+        <div class="bar-wrap" style="margin-top:5px">
+          <div class="bar" style="width:${Math.max(5,x.price/max*100)}%"></div>
+        </div>
+      </td>
+      <td>${x.time}時間</td>
+    </tr>
+  `).join("");
+}
+
+function reset(){
+  selectedProduct="rice";
+  production="goto";
+  consumer="fukuoka";
+  wholesaleCount=0;
+  $("transport").value="truck";
+  history=[];
+  renderAll();
+  renderComparison();
+}
+
+function renderAll(){
+  renderProducts();
+  renderPlaceSelects();
+  updateRouteDisplay();
+  updatePreview();
+}
+
+$("productSelect").addEventListener("change",e=>{
+  selectedProduct=e.target.value;
+  updatePreview();
+});
+
+$("addWholesale").addEventListener("click",()=>{
+  wholesaleCount++;
+  updatePreview();
+});
+
+$("clearWholesale").addEventListener("click",()=>{
+  if(wholesaleCount>0) wholesaleCount--;
+  updatePreview();
+});
+document.querySelector('[data-route="direct"]').addEventListener("click",()=>{
+  wholesaleCount=0;
+  updatePreview();
+});
+
+$("calculate").addEventListener("click",()=>{
+  addHistory();
+  document.querySelector(".comparison").scrollIntoView({behavior:"smooth",block:"start"});
+});
+
+$("reset").addEventListener("click",reset);
+$("transport").addEventListener("change",updatePreview);
+
+renderAll();
+</script>
+</body>
+</html>
